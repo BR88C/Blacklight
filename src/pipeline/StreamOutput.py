@@ -2,16 +2,16 @@ import cv2
 import cv2.typing
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from io import BytesIO
+import numpy
 from PIL import Image
 import socketserver
 import threading
 import time
-from typing import Union
 
 from config.ConnectionConfig import ConnectionConfig
 
 class StreamOutput:
-    _capture: Union[cv2.typing.MatLike, None] = None
+    _capture: cv2.typing.MatLike = numpy.array([])
 
     class StreamServer(socketserver.ThreadingMixIn, HTTPServer):
         allow_reuse_address = True
@@ -62,7 +62,7 @@ class StreamOutput:
 
                     try:
                         while True:
-                            if self_mjpeg._capture == None:
+                            if not self_mjpeg._capture.any():
                                 time.sleep(0.1)
                             else:
                                 pil_im = Image.fromarray(self_mjpeg._capture) # type: ignore

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import List, Union
 
 from config.NTConfig import NTConfig
+from filter.OverlayMarkers import OverlayMarkers
 
 @dataclass
 class ApriltagDetection:
@@ -14,12 +15,14 @@ class ApriltagDetector:
     _config: Union[NTConfig, None] = None
     _detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL), cv2.aruco.DetectorParameters(), cv2.aruco.RefineParameters())
     _dictionary: Union[cv2.aruco.Dictionary, None] = None
+    _overlay_markers = OverlayMarkers()
 
     def search(self, capture: cv2.typing.MatLike, nt_config: NTConfig) -> List[ApriltagDetection]:
         self._update_config(nt_config)
 
         if (self._dictionary != None):
             corners, ids, _ = self._detector.detectMarkers(capture)
+            self._overlay_markers.add_detections(capture, corners, ids)
             if (len(corners) == 0):
                 return []
             else:
