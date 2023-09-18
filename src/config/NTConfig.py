@@ -20,11 +20,11 @@ class NTConfigTag:
 class NTConfig:
     blue_alliance: bool = True
     device_path: str = "/dev/video0"
-    height: int = 1600
-    width: int = 1200
+    height: int = 1200
+    width: int = 1600
     auto_exposure: int = 1
-    absolute_exposure: int = 1
-    gain: int = -1
+    absolute_exposure: int = 10
+    gain: int = 25
     tag_size: float = 0.1524
     tag_family: str = "16h5"
     tag_layout: List[NTConfigTag] = field(default_factory = lambda: [])
