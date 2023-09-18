@@ -27,7 +27,6 @@ import time
 from config.CalibrationConfig import CalibrationConfigLoader
 from config.ConnectionConfig import ConnectionConfigLoader
 from config.NTConfig import NTConfig, NTConfigUpdater
-from filter.OverlayMarkers import OverlayMarkers
 from pipeline.ApriltagDetector import ApriltagDetector
 from pipeline.Camera import Camera
 from pipeline.NTOutput import NTOutput
@@ -50,8 +49,6 @@ if __name__ == "__main__":
     pose_estimator = PoseEstimator()
     nt_output = NTOutput(connection_config)
     stream_output = StreamOutput()
-
-    overlay_markers = OverlayMarkers()
 
     ntcore.NetworkTableInstance.getDefault().setServer(connection_config.nt_uri)
     ntcore.NetworkTableInstance.getDefault().startClient4(connection_config.name)
@@ -83,7 +80,6 @@ if __name__ == "__main__":
     
         if len(calibration_config.distortion_coefficients) > 0 and len(calibration_config.distortion_matrix) > 0:
             detections = apriltag_detector.search(capture, nt_config)
-            overlay_markers.add_detections(capture, detections)
             camera_pose_estimation = pose_estimator.get_estimated_camera_pose(detections, calibration_config, nt_config)
             debug_pose_estimation = pose_estimator.get_estimated_debug_pose(detections, calibration_config, nt_config)
             nt_output.update(timestamp, fps, camera_pose_estimation, debug_pose_estimation)
