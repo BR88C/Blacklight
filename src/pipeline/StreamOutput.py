@@ -67,7 +67,7 @@ class StreamOutput:
                             else:
                                 pil_im = Image.fromarray(self_mjpeg._capture) # type: ignore
                                 stream = BytesIO()
-                                pil_im.save(stream, format="JPEG")
+                                pil_im.save(stream, format = "JPEG", quality = 10)
                                 frame_data = stream.getvalue()
 
                                 self.wfile.write(b"--FRAME\r\n")
