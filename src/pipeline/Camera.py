@@ -39,16 +39,17 @@ class Camera:
             self._camera = cv2.VideoCapture(
                 "v4l2src device="
                     + str(self._config.device_path)
-                    + " extra_controls=\"c,exposure_auto="
-                    + str(self._config.auto_exposure)
-                    + ",exposure_absolute="
-                    + str(self._config.absolute_exposure)
-                    + ",gain=" + str(self._config.gain)
-                    + ",sharpness=0,brightness=0\" ! image/jpeg,format=MJPG,height="
-                    + str(self._config.height)
-                    + ",width="
+                    + " ! video/x-raw, format=BGR, width="
                     + str(self._config.width)
-                    + " ! jpegdec ! video/x-raw ! appsink drop=1",
+                    + ", height="
+                    + str(self._config.height)
+                    + ", pixel-aspect-ratio=1/1, extra_controls=\"c, exposure_auto="
+                    + str(self._config.auto_exposure)
+                    + ", exposure_absolute="
+                    + str(self._config.absolute_exposure)
+                    + ", gain="
+                    + str(self._config.gain)
+                    + ", sharpness=0, brightness=0\" ! videoconvert ! appsink drop=1",
                 cv2.CAP_GSTREAMER
             )
             print("Camera Started")
