@@ -5,7 +5,7 @@ import math
 import numpy
 import numpy.typing
 from typing import List, Union
-from wpimath.geometry import Quaternion, Pose3d, Rotation3d, Transform3d, Translation3d
+from wpimath.geometry import Pose3d, Rotation3d, Transform3d, Translation3d
 
 from config.CalibrationConfig import CalibrationConfig;
 from config.NTConfig import NTConfig
@@ -14,13 +14,10 @@ from pipeline.ApriltagDetector import ApriltagDetection
 @dataclass
 class PoseEstimation:
     ids: List[int]
-    pose_0: Pose3d
-    error_0: float
-    pose_1: Union[Pose3d, None]
-    error_1: Union[float, None]
+    pose: Pose3d
 
 class PoseEstimator:
-    def get_estimated_camera_pose(self, detections: List[ApriltagDetection], calibration_config: CalibrationConfig, nt_config: NTConfig) -> Union[PoseEstimation, None]:
+    def get_estimated_pose(self, detections: List[ApriltagDetection], calibration_config: CalibrationConfig, nt_config: NTConfig) -> Union[PoseEstimation, None]:
         if len(detections) == 0 or len(calibration_config.distortion_coefficients) == 0 or len(calibration_config.distortion_matrix) == 0 or len(nt_config.tag_layout) == 0:
             return None
 
@@ -35,7 +32,7 @@ class PoseEstimator:
                 if config_tag_pose.id == detection.id:
                     tag_pose = Pose3d(
                         Translation3d(config_tag_pose.x, config_tag_pose.y, config_tag_pose.z),
-                        Rotation3d(Quaternion(config_tag_pose.qw, config_tag_pose.qx, config_tag_pose.qy, config_tag_pose.qz))
+                        Rotation3d(config_tag_pose.rx, config_tag_pose.ry, config_tag_pose.rz)
                     )
 
             if tag_pose != None:
@@ -80,16 +77,28 @@ class PoseEstimator:
             except:
                 return None
 
+            error0 = errors[0][0]
+            error1 = errors[1][0]
             field_to_tag_pose = tag_poses[0]
-            camera_to_tag_pose_0 = self._to_wpilib(tvecs[0], rvecs[0])
-            camera_to_tag_pose_1 = self._to_wpilib(tvecs[1], rvecs[1])
-            camera_to_tag_0 = Transform3d(camera_to_tag_pose_0.translation(), camera_to_tag_pose_0.rotation())
-            camera_to_tag_1 = Transform3d(camera_to_tag_pose_1.translation(), camera_to_tag_pose_1.rotation())
-            field_to_camera_0 = field_to_tag_pose.transformBy(camera_to_tag_0.inverse())
-            field_to_camera_1 = field_to_tag_pose.transformBy(camera_to_tag_1.inverse())
-            field_to_camera_pose_0 = Pose3d(field_to_camera_0.translation(), field_to_camera_0.rotation())
-            field_to_camera_pose_1 = Pose3d(field_to_camera_1.translation(), field_to_camera_1.rotation())
-            return PoseEstimation(tags, field_to_camera_pose_0, errors[0][0], field_to_camera_pose_1, errors[1][0])
+
+            if (error0 < (error1 * nt_config.error_ambiguity)):
+                camera_to_tag_pose = self._to_wpilib(tvecs[0], rvecs[0])
+                final_pose = self._to_robot_pose(field_to_tag_pose.transformBy(Transform3d(camera_to_tag_pose.translation(), camera_to_tag_pose.rotation())), nt_config)
+
+                if self._is_outside_field(final_pose, nt_config):
+                    return None
+                else:
+                    return PoseEstimation(tags, final_pose)
+            elif (error1 < (error0 * nt_config.error_ambiguity)):
+                camera_to_tag_pose = self._to_wpilib(tvecs[1], rvecs[1])
+                final_pose = self._to_robot_pose(field_to_tag_pose.transformBy(Transform3d(camera_to_tag_pose.translation(), camera_to_tag_pose.rotation()).inverse()), nt_config)
+
+                if self._is_outside_field(final_pose, nt_config):
+                    return None
+                else:
+                    return PoseEstimation(tags, final_pose)
+            else:
+                return None
         else:
             try:
                 _, rvecs, tvecs, errors = cv2.solvePnPGeneric(
@@ -103,10 +112,14 @@ class PoseEstimator:
                 return None
 
             camera_to_field_pose = self._to_wpilib(tvecs[0], rvecs[0])
-            camera_to_field = Transform3d(camera_to_field_pose.translation(), camera_to_field_pose.rotation())
-            field_to_camera = camera_to_field.inverse()
-            field_to_camera_pose = Pose3d(field_to_camera.translation(), field_to_camera.rotation())
-            return PoseEstimation(tags, field_to_camera_pose, errors[0][0], None, None)
+            camera_to_field_translation = Transform3d(camera_to_field_pose.translation(), camera_to_field_pose.rotation())
+            field_to_camera = camera_to_field_translation.inverse()
+            final_pose = self._to_robot_pose(Pose3d(field_to_camera.translation(), field_to_camera.rotation()), nt_config)
+
+            if self._is_outside_field(final_pose, nt_config):
+                    return None
+            else:
+                return PoseEstimation(tags, final_pose)
 
     def get_estimated_debug_pose(self, detections: List[ApriltagDetection], calibration_config: CalibrationConfig, nt_config: NTConfig) -> Union[PoseEstimation, None]:
         for detection in detections:
@@ -127,7 +140,15 @@ class PoseEstimator:
                 except:
                     return None
 
-                return PoseEstimation([detection.id], self._to_wpilib(tvecs[0], rvecs[0]), errors[0][0], self._to_wpilib(tvecs[1], rvecs[1]), errors[1][0])
+                error0 = errors[0][0]
+                error1 = errors[1][0]
+
+                if (error0 < (error1 * nt_config.error_ambiguity)):
+                    return PoseEstimation([detection.id], self._to_robot_pose(self._to_wpilib(tvecs[0], rvecs[0]), nt_config))
+                elif (error1 < (error0 * nt_config.error_ambiguity)):
+                    return PoseEstimation([detection.id], self._to_robot_pose(self._to_wpilib(tvecs[1], rvecs[1]), nt_config))
+                else:
+                    return None
 
     def _to_opencv(self, translation: Translation3d) -> List[float]:
         return [-translation.Y(), -translation.Z(), translation.X()] # type: ignore
@@ -140,3 +161,12 @@ class PoseEstimator:
                 math.sqrt(math.pow(rvec[0][0], 2) + math.pow(rvec[1][0], 2) + math.pow(rvec[2][0], 2))
             )
         )
+
+    def _is_outside_field(self, pose: Pose3d, nt_config: NTConfig) -> bool:
+        if pose.X() < -nt_config.field_margin[0] or pose.Y() < -nt_config.field_margin[1] or pose.Z() < -nt_config.field_margin[2] or pose.X() > nt_config.field_size[0] + nt_config.field_margin[0]  or pose.Y() > nt_config.field_size[1] + nt_config.field_margin[1] or pose.Z() > nt_config.field_size[2] + nt_config.field_margin[2]: # type: ignore
+            return True
+        else:
+            return False
+
+    def _to_robot_pose(self, pose: Pose3d, nt_config: NTConfig) -> Pose3d:
+        return pose.transformBy(Transform3d(Translation3d(nt_config.camera_position[0], nt_config.camera_position[1], nt_config.camera_position[2]), Rotation3d(nt_config.camera_position[3], nt_config.camera_position[4], nt_config.camera_position[5])).inverse())

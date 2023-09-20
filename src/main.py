@@ -57,6 +57,7 @@ if __name__ == "__main__":
     stream_output.start_server(connection_config)
     print("Started stream server")
 
+    fps = 0
     frames = 0
     last_frame_print = 0
     while True:
@@ -70,19 +71,18 @@ if __name__ == "__main__":
             time.sleep(0.5)
             continue
 
-        fps = None
         frames += 1
         if timestamp - last_frame_print > 1:
-            last_frame_print = timestamp
             fps = frames
-            print("Pipeline running at " + str(fps) + " fps")
             frames = 0
-    
+            print("Pipeline running at " + str(fps) + " fps")
+            last_frame_print = timestamp
+
         if len(calibration_config.distortion_coefficients) > 0 and len(calibration_config.distortion_matrix) > 0:
             detections = apriltag_detector.search(capture, nt_config)
-            camera_pose_estimation = pose_estimator.get_estimated_camera_pose(detections, calibration_config, nt_config)
+            pose_estimation = pose_estimator.get_estimated_pose(detections, calibration_config, nt_config)
             debug_pose_estimation = pose_estimator.get_estimated_debug_pose(detections, calibration_config, nt_config)
-            nt_output.update(timestamp, fps, camera_pose_estimation, debug_pose_estimation)
+            nt_output.update(timestamp, fps, pose_estimation, debug_pose_estimation)
         else:
             print("No calibration found")
             time.sleep(0.5)
