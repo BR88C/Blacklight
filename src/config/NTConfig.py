@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, fields, MISSING
+from dataclasses import dataclass
 import json
 import ntcore
 from typing import List
@@ -17,26 +17,20 @@ class NTConfigTag:
 
 @dataclass
 class NTConfig:
-    device_path: str = "/dev/video0"
-    height: int = 1200
-    width: int = 1600
-    auto_exposure: int = 1
-    absolute_exposure: int = 10
-    gain: int = 25
-    camera_position: List[float] = field(default_factory = lambda: [0, 0, 0, 0, 0, 0])
-    error_ambiguity: float = 0.15
-    tag_size: float = 0.1524
-    tag_family: str = "16h5"
-    tag_layout: List[NTConfigTag] = field(default_factory = lambda: [])
-    debug_tag: int = 9
-    field_size: List[float] = field(default_factory = lambda: [16.5417, 8.0136, 0.0])
-    field_margin: List[float] = field(default_factory = lambda: [0.5, 0.5, 0.75])
-
-    def __post_init__(self):
-        for field in fields(self):
-            v = getattr(self, field.name)
-            if v is None and not field.default_factory is MISSING:
-                setattr(self, field.name, field.default_factory())
+    device_path: str
+    height: int
+    width: int 
+    auto_exposure: int
+    absolute_exposure: int
+    gain: int
+    camera_position: List[float]
+    error_ambiguity: float
+    tag_size: float
+    tag_family: str
+    tag_layout: List[NTConfigTag]
+    debug_tag: int
+    field_size: List[float]
+    field_margin: List[float]
 
 class NTConfigUpdater:
     _connection_config: ConnectionConfig
@@ -62,20 +56,20 @@ class NTConfigUpdater:
     def update(self, nt_config: NTConfig) -> None:
         if not self._subbed:
             table = ntcore.NetworkTableInstance.getDefault().getTable("/" + self._connection_config.name + "/config")
-            self._device_path = table.getStringTopic("devicePath").subscribe(NTConfig.device_path)
-            self._height = table.getIntegerTopic("height").subscribe(NTConfig.height)
-            self._width = table.getIntegerTopic("width").subscribe(NTConfig.width)
-            self._auto_exposure = table.getIntegerTopic("autoExposure").subscribe(NTConfig.auto_exposure)
-            self._absolute_exposure = table.getIntegerTopic("absoluteExposure").subscribe(NTConfig.absolute_exposure)
-            self._gain = table.getIntegerTopic("gain").subscribe(NTConfig.gain)
-            self._camera_position = table.getDoubleArrayTopic("cameraPosition").subscribe(NTConfig.camera_position)
-            self._error_ambiguity = table.getDoubleTopic("errorAmbiguity").subscribe(NTConfig.error_ambiguity)
-            self._tag_size = table.getDoubleTopic("tagSize").subscribe(NTConfig.tag_size)
-            self._tag_family = table.getStringTopic("tagFamily").subscribe(NTConfig.tag_family)
-            self._tag_layout = table.getStringTopic("tagLayout").subscribe("[]")
-            self._debug_tag = table.getIntegerTopic("debugTag").subscribe(NTConfig.debug_tag)
-            self._field_size = table.getDoubleArrayTopic("fieldSize").subscribe(NTConfig.field_size)
-            self._field_margin = table.getDoubleArrayTopic("fieldMargin").subscribe(NTConfig.field_margin)
+            self._device_path = table.getStringTopic("devicePath").subscribe(nt_config.device_path)
+            self._height = table.getIntegerTopic("height").subscribe(nt_config.height)
+            self._width = table.getIntegerTopic("width").subscribe(nt_config.width)
+            self._auto_exposure = table.getIntegerTopic("autoExposure").subscribe(nt_config.auto_exposure)
+            self._absolute_exposure = table.getIntegerTopic("absoluteExposure").subscribe(nt_config.absolute_exposure)
+            self._gain = table.getIntegerTopic("gain").subscribe(nt_config.gain)
+            self._camera_position = table.getDoubleArrayTopic("cameraPosition").subscribe(nt_config.camera_position)
+            self._error_ambiguity = table.getDoubleTopic("errorAmbiguity").subscribe(nt_config.error_ambiguity)
+            self._tag_size = table.getDoubleTopic("tagSize").subscribe(nt_config.tag_size)
+            self._tag_family = table.getStringTopic("tagFamily").subscribe(nt_config.tag_family)
+            self._tag_layout = table.getStringTopic("tagLayout").subscribe(json.dumps(nt_config.tag_layout))
+            self._debug_tag = table.getIntegerTopic("debugTag").subscribe(nt_config.debug_tag)
+            self._field_size = table.getDoubleArrayTopic("fieldSize").subscribe(nt_config.field_size)
+            self._field_margin = table.getDoubleArrayTopic("fieldMargin").subscribe(nt_config.field_margin)
             self._subbed = True
 
         nt_config.device_path = self._device_path.get()
@@ -95,3 +89,21 @@ class NTConfigUpdater:
         nt_config.debug_tag = self._debug_tag.get()
         nt_config.field_size = self._field_size.get()
         nt_config.field_margin = self._field_margin.get()
+
+    def generate_default (self) -> NTConfig:
+        return NTConfig(
+            device_path = "/dev/video0",
+            height = 1200,
+            width = 1600,
+            auto_exposure = 1,
+            absolute_exposure = 10,
+            gain = 25,
+            camera_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            error_ambiguity = 0.15,
+            tag_size = 0.1524,
+            tag_family = "16h5",
+            tag_layout = [],
+            debug_tag = 9,
+            field_size = [16.5417, 8.0136, 0.0],
+            field_margin = [0.5, 0.5, 0.75]
+        )

@@ -1,23 +1,17 @@
-from dataclasses import dataclass, fields, MISSING
+from dataclasses import dataclass
 import json
 
 @dataclass
 class ConnectionConfig:
-    name: str = ""
-    nt_uri: str = ""
-    video_port: int = 0
-
-    def __post_init__(self):
-        for field in fields(self):
-            v = getattr(self, field.name)
-            if v is None and not field.default_factory is MISSING:
-                setattr(self, field.name, field.default_factory())
+    name: str
+    nt_uri: str
+    video_port: int
 
 class ConnectionConfigLoader:
     FILENAME = "connection_config.json"
 
     def load(self) -> ConnectionConfig:
-        config = ConnectionConfig()
+        config = ConnectionConfig("", "", 0)
         with open(self.FILENAME) as file:
             parsed_file = json.loads(file.read())
             config.name = parsed_file["name"]

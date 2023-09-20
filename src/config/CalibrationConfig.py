@@ -1,26 +1,20 @@
 import cv2
 import cv2.typing
-from dataclasses import dataclass, field, fields, MISSING
+from dataclasses import dataclass
 import datetime
 import numpy
 import os
 
 @dataclass
 class CalibrationConfig:
-    distortion_matrix: cv2.typing.MatLike = field(default_factory = lambda: numpy.array([]))
-    distortion_coefficients: cv2.typing.MatLike = field(default_factory = lambda: numpy.array([]))
-
-    def __post_init__(self):
-        for field in fields(self):
-            v = getattr(self, field.name)
-            if v is None and not field.default_factory is MISSING:
-                setattr(self, field.name, field.default_factory())
+    distortion_matrix: cv2.typing.MatLike
+    distortion_coefficients: cv2.typing.MatLike
 
 class CalibrationConfigLoader:
     FILENAME = "calibration_config.json"
 
     def load(self) -> CalibrationConfig:
-        config = CalibrationConfig()
+        config = CalibrationConfig(numpy.array([]), numpy.array([]))
         file = cv2.FileStorage(self.FILENAME, cv2.FILE_STORAGE_READ)
         config.distortion_matrix = file.getNode("distortion_matrix").mat()
         config.distortion_coefficients = file.getNode("distortion_coefficients").mat()

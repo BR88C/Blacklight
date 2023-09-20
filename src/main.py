@@ -26,7 +26,7 @@ import time
 
 from config.CalibrationConfig import CalibrationConfigLoader
 from config.ConnectionConfig import ConnectionConfigLoader
-from config.NTConfig import NTConfig, NTConfigUpdater
+from config.NTConfig import NTConfigUpdater
 from pipeline.ApriltagDetector import ApriltagDetector
 from pipeline.Camera import Camera
 from pipeline.NTOutput import NTOutput
@@ -35,15 +35,16 @@ from pipeline.StreamOutput import StreamOutput
 
 if __name__ == "__main__":
     calibration_config_loader = CalibrationConfigLoader()
-
     connection_config = ConnectionConfigLoader().load()
     print("Loaded connection config")
+
     calibration_config = calibration_config_loader.load()
     print("Loaded calibration config")
-    nt_config = NTConfig()
-    print("Generated NT config")
 
     nt_config_updater = NTConfigUpdater(connection_config)
+    nt_config = nt_config_updater.generate_default()
+    print("Generated NT config")
+
     camera = Camera()
     apriltag_detector = ApriltagDetector()
     pose_estimator = PoseEstimator()
