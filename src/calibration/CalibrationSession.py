@@ -34,6 +34,7 @@ class CalibrationSession:
             obj_points, image_points = self._board.matchImagePoints(charuco_corners, charuco_ids) # type: ignore
             self._obj_points.append(obj_points) # type: ignore
             self._img_points.append(image_points) # type: ignore
+            print("Took calibration snap")
 
     def save_to_file(self, calibration_config_loader: CalibrationConfigLoader) -> None:
         if len(self._img_points) == 0 or len(self._obj_points) == 0:
