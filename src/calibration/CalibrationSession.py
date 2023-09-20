@@ -6,14 +6,16 @@ from filter.OverlayMarkers import OverlayMarkers
 from config.CalibrationConfig import CalibrationConfigLoader
 
 class CalibrationSession:
-    _board = cv2.aruco.CharucoBoard((12, 9), 0.030, 0.023, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_1000))
+    _board: cv2.aruco.CharucoBoard
     _camera_size: Union[cv2.typing.Size, None] = None
     _detector: cv2.aruco.CharucoDetector
     _img_points: Sequence[cv2.typing.MatLike] = []
     _obj_points: Sequence[cv2.typing.MatLike] = []
     _overlay_markers = OverlayMarkers()
 
-    def __init__(self) -> None:
+    def __init__(self, squaresX: int, squaresY: int, squareLengthMeters: float, markerLengthMeters: float) -> None:
+        self._board = cv2.aruco.CharucoBoard((squaresX, squaresY), squareLengthMeters, markerLengthMeters, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_1000))
+
         self._detector = cv2.aruco.CharucoDetector(
             self._board,
             cv2.aruco.CharucoParameters(),

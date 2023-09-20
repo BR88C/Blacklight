@@ -32,6 +32,24 @@ class NTConfig:
     field_size: List[float]
     field_margin: List[float]
 
+def generate_default() -> NTConfig:
+    return NTConfig(
+        device_path = "/dev/video0",
+        height = 1200,
+        width = 1600,
+        auto_exposure = 1,
+        absolute_exposure = 10,
+        gain = 25,
+        camera_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        error_ambiguity = 0.15,
+        tag_size = 0.1524,
+        tag_family = "16h5",
+        tag_layout = [],
+        debug_tag = 9,
+        field_size = [16.5417, 8.0136, 0.0],
+        field_margin = [0.5, 0.5, 0.75]
+    )
+
 class NTConfigUpdater:
     _connection_config: ConnectionConfig
     _subbed: bool = False
@@ -89,21 +107,3 @@ class NTConfigUpdater:
         nt_config.debug_tag = self._debug_tag.get()
         nt_config.field_size = self._field_size.get()
         nt_config.field_margin = self._field_margin.get()
-
-    def generate_default (self) -> NTConfig:
-        return NTConfig(
-            device_path = "/dev/video0",
-            height = 1200,
-            width = 1600,
-            auto_exposure = 1,
-            absolute_exposure = 10,
-            gain = 25,
-            camera_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            error_ambiguity = 0.15,
-            tag_size = 0.1524,
-            tag_family = "16h5",
-            tag_layout = [],
-            debug_tag = 9,
-            field_size = [16.5417, 8.0136, 0.0],
-            field_margin = [0.5, 0.5, 0.75]
-        )
