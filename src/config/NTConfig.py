@@ -28,7 +28,7 @@ class NTConfig:
     tag_size: float = 0.1524
     tag_family: str = "16h5"
     tag_layout: List[NTConfigTag] = field(default_factory = lambda: [])
-    debug_tag: int = 0
+    debug_tag: int = 9
     field_size: List[float] = field(default_factory = lambda: [16.5417, 8.0136, 0.0])
     field_margin: List[float] = field(default_factory = lambda: [0.5, 0.5, 0.75])
 
