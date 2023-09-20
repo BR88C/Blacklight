@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, MISSING
 import json
 import ntcore
 from typing import List
@@ -7,13 +7,13 @@ from config.ConnectionConfig import ConnectionConfig
 
 @dataclass
 class NTConfigTag:
-    id: int = -1
-    x: float = -1
-    y: float = -1
-    z: float = -1
-    rx: float = -1
-    ry: float = -1
-    rz: float = -1
+    id: int
+    x: float
+    y: float
+    z: float
+    rx: float
+    ry: float
+    rz: float
 
 @dataclass
 class NTConfig:
@@ -31,6 +31,12 @@ class NTConfig:
     debug_tag: int = 9
     field_size: List[float] = field(default_factory = lambda: [16.5417, 8.0136, 0.0])
     field_margin: List[float] = field(default_factory = lambda: [0.5, 0.5, 0.75])
+
+    def __post_init__(self):
+        for field in fields(self):
+            v = getattr(self, field.name)
+            if v is None and not field.default_factory is MISSING:
+                setattr(self, field.name, field.default_factory())
 
 class NTConfigUpdater:
     _connection_config: ConnectionConfig
