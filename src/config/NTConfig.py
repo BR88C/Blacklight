@@ -23,7 +23,7 @@ class NTConfig:
     auto_exposure: int = 1
     absolute_exposure: int = 10
     gain: int = 25
-    camera_position: List[float] = [0, 0, 0, 0, 0, 0]
+    camera_position: List[float] = field(default_factory = lambda: [0, 0, 0, 0, 0, 0])
     error_ambiguity: float = 0.15
     tag_size: float = 0.1524
     tag_family: str = "16h5"
