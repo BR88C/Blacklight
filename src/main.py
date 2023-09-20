@@ -23,7 +23,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import ntcore
 import time
+from typing import Optional
 
+from calibration.CalibrationSession import CalibrationSession
+from calibration.NTCalibrationController import NTCalibrationController
 from config.CalibrationConfig import CalibrationConfigLoader
 from config.ConnectionConfig import ConnectionConfigLoader
 from config.NTConfig import NTConfigUpdater, generate_default
@@ -45,6 +48,9 @@ if __name__ == "__main__":
     nt_config_updater = NTConfigUpdater(connection_config)
     nt_config = generate_default()
     print("Generated NT config")
+
+    calibration_controller = NTCalibrationController(connection_config)
+    calibration_session: Optional[CalibrationSession] = None
 
     camera = Camera()
     apriltag_detector = ApriltagDetector()
@@ -80,13 +86,23 @@ if __name__ == "__main__":
             print("Pipeline running at " + str(fps) + " fps")
             last_frame_print = timestamp
 
-        if len(calibration_config.distortion_coefficients) > 0 and len(calibration_config.distortion_matrix) > 0:
-            detections = apriltag_detector.search(capture, nt_config)
-            pose_estimation = pose_estimator.get_estimated_pose(detections, calibration_config, nt_config)
-            debug_pose_estimation = pose_estimator.get_estimated_debug_pose(detections, calibration_config, nt_config)
-            nt_output.update(timestamp, fps, pose_estimation, debug_pose_estimation)
+        if calibration_controller.is_calibrating():
+            if calibration_session == None:
+                calibration_session = CalibrationSession(12, 9, 0.030, 0.023)
+
+            calibration_session.intake_frame(capture, calibration_controller.should_snap())
         else:
-            print("No calibration found")
-            time.sleep(0.5)
+            if calibration_session != None:
+                calibration_session.save_to_file(calibration_config_loader)
+                calibration_session = None
+
+            if len(calibration_config.distortion_coefficients) > 0 and len(calibration_config.distortion_matrix) > 0:
+                detections = apriltag_detector.search(capture, nt_config)
+                pose_estimation = pose_estimator.get_estimated_pose(detections, calibration_config, nt_config)
+                debug_pose_estimation = pose_estimator.get_estimated_debug_pose(detections, calibration_config, nt_config)
+                nt_output.update(timestamp, fps, pose_estimation, debug_pose_estimation)
+            else:
+                print("No calibration found")
+                time.sleep(0.5)
 
         stream_output.update(capture)

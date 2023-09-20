@@ -1,13 +1,13 @@
 import cv2
 import cv2.typing
-from typing import Sequence, Union
+from typing import Optional, Sequence
 
 from filter.OverlayMarkers import OverlayMarkers
 from config.CalibrationConfig import CalibrationConfigLoader
 
 class CalibrationSession:
     _board: cv2.aruco.CharucoBoard
-    _camera_size: Union[cv2.typing.Size, None] = None
+    _camera_size: Optional[cv2.typing.Size] = None
     _detector: cv2.aruco.CharucoDetector
     _img_points: Sequence[cv2.typing.MatLike] = []
     _obj_points: Sequence[cv2.typing.MatLike] = []

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import math
 import numpy
 import numpy.typing
-from typing import List, Union
+from typing import List, Optional
 from wpimath.geometry import Pose3d, Rotation3d, Transform3d, Translation3d
 
 from config.CalibrationConfig import CalibrationConfig;
@@ -17,7 +17,7 @@ class PoseEstimation:
     pose: Pose3d
 
 class PoseEstimator:
-    def get_estimated_pose(self, detections: List[ApriltagDetection], calibration_config: CalibrationConfig, nt_config: NTConfig) -> Union[PoseEstimation, None]:
+    def get_estimated_pose(self, detections: List[ApriltagDetection], calibration_config: CalibrationConfig, nt_config: NTConfig) -> Optional[PoseEstimation]:
         if len(detections) == 0 or len(calibration_config.distortion_coefficients) == 0 or len(calibration_config.distortion_matrix) == 0 or len(nt_config.tag_layout) == 0:
             return None
 
@@ -26,7 +26,7 @@ class PoseEstimator:
         points: List[List[float]] = []
         image_points: List[List[float]] = []
         for detection in detections:
-            tag_pose: Union[Pose3d, None] = None
+            tag_pose: Optional[Pose3d] = None
 
             for config_tag_pose in nt_config.tag_layout:
                 if config_tag_pose.id == detection.id:
@@ -121,7 +121,7 @@ class PoseEstimator:
             else:
                 return PoseEstimation(tags, final_pose)
 
-    def get_estimated_debug_pose(self, detections: List[ApriltagDetection], calibration_config: CalibrationConfig, nt_config: NTConfig) -> Union[PoseEstimation, None]:
+    def get_estimated_debug_pose(self, detections: List[ApriltagDetection], calibration_config: CalibrationConfig, nt_config: NTConfig) -> Optional[PoseEstimation]:
         for detection in detections:
             if detection.id == nt_config.debug_tag:
                 try:

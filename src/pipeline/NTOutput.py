@@ -1,6 +1,6 @@
 import math
 import ntcore
-from typing import List, Union
+from typing import List, Optional
 
 from config.ConnectionConfig import ConnectionConfig
 from pipeline.PoseEstimator import PoseEstimation
@@ -15,7 +15,7 @@ class NTOutput:
     def __init__(self, connection_config: ConnectionConfig) -> None:
         self._connection_config = connection_config
 
-    def update(self, timestamp: float, fps: int, pose_estimation: Union[PoseEstimation, None], debug_pose_estimation: Union[PoseEstimation, None]) -> None:
+    def update(self, timestamp: float, fps: int, pose_estimation: Optional[PoseEstimation], debug_pose_estimation: Optional[PoseEstimation]) -> None:
         if not self._published:
             table = ntcore.NetworkTableInstance.getDefault().getTable("/" + self._connection_config.name + "/output")
             self._fps = table.getIntegerTopic("fps").publish()

@@ -2,13 +2,13 @@ import cv2
 import cv2.typing
 import numpy
 import time
-from typing import Tuple, Union
+from typing import Optional, Tuple
 
 from config.NTConfig import NTConfig
 
 class Camera:
-    _camera: Union[cv2.VideoCapture, None] = None
-    _config: Union[NTConfig, None] = None
+    _camera: Optional[cv2.VideoCapture] = None
+    _config: Optional[NTConfig] = None
 
     def read(self, nt_config: NTConfig) -> Tuple[bool, cv2.typing.MatLike]:
         self._update_config(nt_config)
