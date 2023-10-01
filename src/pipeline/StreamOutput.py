@@ -22,7 +22,7 @@ class StreamOutput:
             HTML = """
     <html>
         <head>
-            <title>GRRTag</title>
+            <title>Blacklight</title>
             <style>
                 body {
                     background-color: black;

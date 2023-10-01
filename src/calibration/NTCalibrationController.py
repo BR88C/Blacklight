@@ -12,7 +12,7 @@ class NTCalibrationController:
 
     def __init__(self, connection_config: ConnectionConfig) -> None:
         self._connection_config = connection_config
-        self._table = ntcore.NetworkTableInstance.getDefault().getTable("/" + self._connection_config.name + "/calibration")
+        self._table = ntcore.NetworkTableInstance.getDefault().getTable("/Blacklight-" + self._connection_config.name + "/calibration")
 
     def is_calibrating (self) -> bool:
         if self._calibrating == None:

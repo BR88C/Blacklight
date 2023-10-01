@@ -17,7 +17,7 @@ class NTOutput:
 
     def update(self, timestamp: float, fps: int, pose_estimation: Optional[PoseEstimation], debug_pose_estimation: Optional[PoseEstimation]) -> None:
         if not self._published:
-            table = ntcore.NetworkTableInstance.getDefault().getTable("/" + self._connection_config.name + "/output")
+            table = ntcore.NetworkTableInstance.getDefault().getTable("/Blacklight-" + self._connection_config.name + "/output")
             self._fps = table.getIntegerTopic("fps").publish()
             self._pose_estimation = table.getDoubleArrayTopic("poseEstimation").publish()
             self._debug_pose_estimation = table.getDoubleArrayTopic("debugPoseEstimation").publish()

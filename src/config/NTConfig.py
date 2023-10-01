@@ -73,7 +73,7 @@ class NTConfigUpdater:
 
     def update(self, nt_config: NTConfig) -> None:
         if not self._subbed:
-            table = ntcore.NetworkTableInstance.getDefault().getTable("/" + self._connection_config.name + "/config")
+            table = ntcore.NetworkTableInstance.getDefault().getTable("/Blacklight-" + self._connection_config.name + "/config")
             self._device_path = table.getStringTopic("devicePath").subscribe(nt_config.device_path)
             self._height = table.getIntegerTopic("height").subscribe(nt_config.height)
             self._width = table.getIntegerTopic("width").subscribe(nt_config.width)

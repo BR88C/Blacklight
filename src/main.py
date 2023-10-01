@@ -59,7 +59,7 @@ if __name__ == "__main__":
     stream_output = StreamOutput()
 
     ntcore.NetworkTableInstance.getDefault().setServer(connection_config.nt_uri)
-    ntcore.NetworkTableInstance.getDefault().startClient4(connection_config.name)
+    ntcore.NetworkTableInstance.getDefault().startClient4("Blacklight-" + connection_config.name)
     print("Started NT Client")
 
     stream_output.start_server(connection_config)
