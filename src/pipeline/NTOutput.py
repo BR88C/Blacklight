@@ -32,7 +32,8 @@ class NTOutput:
                 pose_estimation.pose.translation().Z(), # type: ignore
                 pose_estimation.pose.rotation().X(), # type: ignore
                 pose_estimation.pose.rotation().Y(), # type: ignore
-                pose_estimation.pose.rotation().Z() # type: ignore
+                pose_estimation.pose.rotation().Z(), # type: ignore
+                pose_estimation.distance
             ]
 
             for id in pose_estimation.ids:
@@ -40,7 +41,7 @@ class NTOutput:
 
             self._pose_estimation.set(array, math.floor(timestamp * 1000000))
         else:
-            self._pose_estimation.set([0], math.floor(timestamp * 1000000))
+            self._pose_estimation.set([], math.floor(timestamp * 1000000))
 
         if debug_pose_estimation != None:
             self._debug_pose_estimation.set([
@@ -49,7 +50,8 @@ class NTOutput:
                 debug_pose_estimation.pose.translation().Z(), # type: ignore
                 debug_pose_estimation.pose.rotation().X(), # type: ignore
                 debug_pose_estimation.pose.rotation().Y(), # type: ignore
-                debug_pose_estimation.pose.rotation().Z() # type: ignore
+                debug_pose_estimation.pose.rotation().Z(), # type: ignore
+                debug_pose_estimation.distance
             ], math.floor(timestamp * 1000000))
         else:
             self._debug_pose_estimation.set([], math.floor(timestamp * 1000000))

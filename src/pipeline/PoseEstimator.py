@@ -15,6 +15,7 @@ from pipeline.ApriltagDetector import ApriltagDetection
 class PoseEstimation:
     ids: List[int]
     pose: Pose3d
+    distance: float
 
 class PoseEstimator:
     def get_estimated_pose(self, detections: List[ApriltagDetection], calibration_config: CalibrationConfig, nt_config: NTConfig) -> Optional[PoseEstimation]:
@@ -83,20 +84,22 @@ class PoseEstimator:
 
             if (error0 < (error1 * nt_config.error_ambiguity)):
                 camera_to_tag_pose = self._to_wpilib(tvecs[0], rvecs[0])
+                distance = camera_to_tag_pose.translation().norm() # type: ignore
                 final_pose = self._to_robot_pose(field_to_tag_pose.transformBy(Transform3d(camera_to_tag_pose.translation(), camera_to_tag_pose.rotation())), nt_config)
 
                 if self._is_outside_field(final_pose, nt_config):
                     return None
                 else:
-                    return PoseEstimation(tags, final_pose)
+                    return PoseEstimation(tags, final_pose, distance) # type: ignore
             elif (error1 < (error0 * nt_config.error_ambiguity)):
                 camera_to_tag_pose = self._to_wpilib(tvecs[1], rvecs[1])
+                distance = camera_to_tag_pose.translation().norm() # type: ignore
                 final_pose = self._to_robot_pose(field_to_tag_pose.transformBy(Transform3d(camera_to_tag_pose.translation(), camera_to_tag_pose.rotation()).inverse()), nt_config)
 
                 if self._is_outside_field(final_pose, nt_config):
                     return None
                 else:
-                    return PoseEstimation(tags, final_pose)
+                    return PoseEstimation(tags, final_pose, distance) # type: ignore
             else:
                 return None
         else:
@@ -112,14 +115,17 @@ class PoseEstimator:
                 return None
 
             camera_to_field_pose = self._to_wpilib(tvecs[0], rvecs[0])
-            camera_to_field_translation = Transform3d(camera_to_field_pose.translation(), camera_to_field_pose.rotation())
-            field_to_camera = camera_to_field_translation.inverse()
+            field_to_camera = Transform3d(camera_to_field_pose.translation(), camera_to_field_pose.rotation()).inverse()
             final_pose = self._to_robot_pose(Pose3d(field_to_camera.translation(), field_to_camera.rotation()), nt_config)
+
+            totalDistance = 0.0
+            for tag_pose in tag_poses:
+                totalDistance += final_pose.relativeTo(tag_pose).translation().norm() # type: ignore
 
             if self._is_outside_field(final_pose, nt_config):
                     return None
             else:
-                return PoseEstimation(tags, final_pose)
+                return PoseEstimation(tags, final_pose, totalDistance / len(tag_poses)) # type: ignore
 
     def get_estimated_debug_pose(self, detections: List[ApriltagDetection], calibration_config: CalibrationConfig, nt_config: NTConfig) -> Optional[PoseEstimation]:
         for detection in detections:
@@ -144,9 +150,13 @@ class PoseEstimator:
                 error1 = errors[1][0]
 
                 if (error0 < (error1 * nt_config.error_ambiguity)):
-                    return PoseEstimation([detection.id], self._to_robot_pose(self._to_wpilib(tvecs[0], rvecs[0]), nt_config))
+                    camera_to_tag_pose = self._to_wpilib(tvecs[0], rvecs[0])
+                    distance = camera_to_tag_pose.translation().norm() # type: ignore
+                    return PoseEstimation([detection.id], self._to_robot_pose(camera_to_tag_pose, nt_config), distance) # type: ignore
                 elif (error1 < (error0 * nt_config.error_ambiguity)):
-                    return PoseEstimation([detection.id], self._to_robot_pose(self._to_wpilib(tvecs[1], rvecs[1]), nt_config))
+                    camera_to_tag_pose = self._to_wpilib(tvecs[1], rvecs[1])
+                    distance = camera_to_tag_pose.translation().norm() # type: ignore
+                    return PoseEstimation([detection.id], self._to_robot_pose(camera_to_tag_pose, nt_config), distance) # type: ignore
                 else:
                     return None
 
